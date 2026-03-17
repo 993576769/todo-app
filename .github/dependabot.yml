@@ -1,7 +1,7 @@
 version: 2
 
 updates:
-  # 前端依赖
+  # 前端依赖 (pnpm)
   - package-ecosystem: "pnpm"
     directory: "/frontend"
     schedule:
@@ -33,7 +33,7 @@ updates:
           - "vue-tsc"
           - "@types/*"
 
-  # 根目录依赖
+  # 根目录依赖 (pnpm)
   - package-ecosystem: "pnpm"
     directory: "/"
     schedule:
