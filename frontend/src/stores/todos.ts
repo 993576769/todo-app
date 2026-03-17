@@ -1,4 +1,5 @@
 import { defineStore } from 'pinia'
+import { ref } from 'vue'
 import { pb } from '@/lib/pocketbase'
 import { useAuthStore } from './auth'
 import type { Todo } from '@/types/pocketbase'
@@ -96,7 +97,7 @@ export const useTodosStore = defineStore('todos', () => {
   const subscribe = () => {
     pb.collection('todos').subscribe('*', (e) => {
       // 确保是当前用户的 todo
-      const record = e.record as Todo
+      const record = e.record as unknown as Todo
       if (record.user !== auth.user?.id) return
       
       if (e.action === 'create') {
