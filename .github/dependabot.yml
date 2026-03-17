@@ -2,7 +2,7 @@ version: 2
 
 updates:
   # 前端依赖
-  - package-ecosystem: "npm"
+  - package-ecosystem: "pnpm"
     directory: "/frontend"
     schedule:
       interval: "weekly"
@@ -34,7 +34,7 @@ updates:
           - "@types/*"
 
   # 根目录依赖
-  - package-ecosystem: "npm"
+  - package-ecosystem: "pnpm"
     directory: "/"
     schedule:
       interval: "weekly"
