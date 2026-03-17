@@ -5,6 +5,7 @@ node_modules/
 # Build output
 dist/
 *.local
+*.tsbuildinfo
 
 # IDE
 .vscode/*
@@ -27,3 +28,6 @@ npm-debug.log*
 
 # PocketBase
 pocketbase/pb_data/
+
+# Docker certs (server-specific)
+certs/

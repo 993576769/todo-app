@@ -1,0 +1,74 @@
+{
+  "$schema": "https://cdn.jsdelivr.net/gh/commitlint/cz-commitlint@master/commitlint.config.js",
+  "extends": ["@commitlint/cz-commitlint"],
+  "prompt": {
+    "questions": {
+      "type": {
+        "description": "选择提交类型",
+        "enum": {
+          "feat": {
+            "description": "新功能",
+            "title": "✨ Features"
+          },
+          "fix": {
+            "description": "修复 bug",
+            "title": "🐛 Bug Fixes"
+          },
+          "docs": {
+            "description": "文档变更",
+            "title": "📝 Documentation"
+          },
+          "style": {
+            "description": "代码格式",
+            "title": "💄 Styles"
+          },
+          "refactor": {
+            "description": "重构",
+            "title": "♻️ Code Refactoring"
+          },
+          "perf": {
+            "description": "性能优化",
+            "title": "⚡ Performance"
+          },
+          "test": {
+            "description": "增加测试",
+            "title": "✅ Tests"
+          },
+          "chore": {
+            "description": "构建/工具变动",
+            "title": "🔧 Chores"
+          },
+          "ci": {
+            "description": "CI 配置变动",
+            "title": "👷 CI"
+          },
+          "revert": {
+            "description": "回退",
+            "title": "⏪ Reverts"
+          }
+        }
+      },
+      "scope": {
+        "description": "影响范围（可选）",
+        "options": [
+          {"value": "frontend", "name": "frontend - 前端"},
+          {"value": "backend", "name": "backend - 后端"},
+          {"value": "ci", "name": "ci - CI/CD"},
+          {"value": "deps", "name": "deps - 依赖"}
+        ]
+      },
+      "subject": {
+        "description": "简短描述"
+      },
+      "body": {
+        "description": "详细描述（可选）"
+      },
+      "breaking": {
+        "description": "是否有破坏性变更"
+      },
+      "footerPrefix": {
+        "description": "关联 issue（可选，如: #123）"
+      }
+    }
+  }
+}
