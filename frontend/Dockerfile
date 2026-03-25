@@ -3,20 +3,16 @@ FROM node:20-alpine AS builder
 WORKDIR /app
 
 # Install pnpm
-RUN npm install -g pnpm
+RUN corepack enable && corepack prepare pnpm@10.32.1 --activate
 
-# Copy workspace config files first
-COPY pnpm-workspace.yaml package.json pnpm-lock.yaml ./
-COPY frontend/package.json ./frontend/
+# Copy all workspace files
+COPY . .
 
 # Install dependencies
 RUN pnpm install --frozen-lockfile
 
-# Copy frontend source
-COPY frontend ./frontend
-
-# Build
-RUN pnpm --filter frontend build
+# Build frontend
+RUN cd frontend && pnpm build
 
 # production stage
 FROM nginx:alpine
