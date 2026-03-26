@@ -42,20 +42,20 @@ const handleDateChange = (e: Event) => {
 
     <button
       v-if="dueDate"
-      class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium rounded-xl transition-all duration-200 cursor-pointer bg-blue-500/10 text-blue-500 hover:bg-blue-500/20"
+      class="inline-flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs font-medium rounded-lg sm:rounded-xl transition-all duration-200 cursor-pointer bg-blue-500/10 text-blue-500 hover:bg-blue-500/20 min-h-[44px] sm:min-h-0"
       @click.stop="openPicker"
     >
-      <Calendar class="w-3.5 h-3.5" />
+      <Calendar class="w-4 h-4 sm:w-3.5 sm:h-3.5" />
       {{ formattedDate }}
       <X
-        class="w-3 h-3 ml-0.5 hover:text-red-400"
+        class="w-3.5 h-3.5 sm:w-3 sm:h-3 ml-0.5 hover:text-red-400"
         @click.stop="clearDate"
       />
     </button>
 
     <button
       v-else
-      class="inline-flex items-center gap-1.5 px-3 py-2 text-xs font-medium text-[var(--color-text-muted)] rounded-xl hover:bg-[var(--color-border)]/30 transition-all duration-200 cursor-pointer"
+      class="inline-flex items-center gap-1.5 px-3 py-2.5 sm:py-2 text-xs font-medium text-[var(--color-text-muted)] rounded-lg sm:rounded-xl hover:bg-[var(--color-border)]/30 transition-all duration-200 cursor-pointer min-h-[44px] sm:min-h-0"
       @click.stop="openPicker"
     >
       <Calendar class="w-4 h-4" />

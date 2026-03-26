@@ -11,12 +11,12 @@ const priorities = [
 </script>
 
 <template>
-  <div class="flex gap-1">
+  <div class="flex gap-0.5 sm:gap-1">
     <button
       v-for="p in priorities"
       :key="p.value"
       type="button"
-      class="p-2 rounded-xl transition-all duration-200 cursor-pointer"
+      class="p-2.5 sm:p-2 rounded-lg sm:rounded-xl transition-all duration-200 cursor-pointer min-h-[44px] sm:min-h-0 min-w-[44px] sm:min-w-0 flex items-center justify-center"
       :class="[p.color, { 'bg-current/10 ring-2 ring-current/30': priority === p.value }]"
       :title="p.label"
       @click="priority = p.value"

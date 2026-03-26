@@ -52,51 +52,57 @@ const handleLogout = () => {
 <template>
   <div class="min-h-screen">
     <!-- Header -->
-    <header class="bg-[var(--color-surface)]/80 backdrop-blur-xl border-b border-[var(--color-border)]/50 py-4 sticky top-0 z-10">
-      <div class="max-w-[680px] mx-auto px-4 flex justify-between items-center">
-        <h1 class="text-xl font-bold flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md shadow-primary/20">
-            <CheckSquare class="w-5 h-5 text-white" />
+    <header class="bg-[var(--color-surface)]/80 backdrop-blur-xl border-b border-[var(--color-border)]/50 py-3 sm:py-4 sticky top-0 z-10">
+      <div class="max-w-[680px] mx-auto px-3 sm:px-4 flex justify-between items-center gap-2">
+        <h1 class="text-lg sm:text-xl font-bold flex items-center gap-2 sm:gap-2.5 shrink-0">
+          <div class="w-8 h-8 sm:w-9 sm:h-9 rounded-lg sm:rounded-xl bg-gradient-to-br from-primary to-secondary flex items-center justify-center shadow-md shadow-primary/20">
+            <CheckSquare class="w-4 h-4 sm:w-5 sm:h-5 text-white" />
           </div>
           <span class="bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">Todo</span>
         </h1>
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
           <ThemeToggle />
-          <div class="flex items-center gap-2 px-3 py-1.5 bg-[var(--color-surface-elevated)]/50 rounded-full border border-[var(--color-border)]/50">
+          <!-- User info - hidden on very small screens -->
+          <div class="hidden min-[400px]:flex items-center gap-2 px-2 sm:px-3 py-1.5 bg-[var(--color-surface-elevated)]/50 rounded-full border border-[var(--color-border)]/50">
             <div class="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
-            <span class="text-[var(--color-text-muted)] text-sm font-medium">{{ auth.user?.name || auth.user?.email }}</span>
+            <span class="text-[var(--color-text-muted)] text-xs sm:text-sm font-medium truncate max-w-[100px] sm:max-w-none">{{ auth.user?.name || auth.user?.email }}</span>
           </div>
           <button
-            class="inline-flex items-center gap-2 px-4 py-2 text-sm font-medium text-[var(--color-text-muted)] rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 cursor-pointer"
+            class="inline-flex items-center gap-1.5 sm:gap-2 px-2.5 sm:px-4 py-2 text-xs sm:text-sm font-medium text-[var(--color-text-muted)] rounded-lg sm:rounded-xl hover:bg-red-500/10 hover:text-red-400 transition-all duration-200 cursor-pointer"
             @click="handleLogout"
           >
-            <LogOut class="w-4 h-4" />
-            登出
+            <LogOut class="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+            <span class="hidden sm:inline">登出</span>
           </button>
         </div>
       </div>
     </header>
 
     <!-- Main -->
-    <main class="max-w-[680px] mx-auto px-4 pt-10 pb-8">
-      <!-- Input -->
-      <div class="flex gap-3 mb-8">
+    <main class="max-w-[680px] mx-auto px-3 sm:px-4 pt-6 sm:pt-10 pb-8">
+      <!-- Input - Mobile: stacked, Desktop: inline -->
+      <div class="flex flex-col sm:flex-row gap-3 mb-6 sm:mb-8">
         <input
           v-model="newTitle"
           @keyup.enter="handleAdd"
           placeholder="添加新任务..."
-          class="flex-1 px-5 py-4 text-base bg-[var(--color-surface-card)]/80 border-2 border-[var(--color-border)] rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20 text-[var(--color-text)] placeholder-[var(--color-text-placeholder)] transition-all duration-200 card-shadow"
+          class="w-full sm:flex-1 px-4 sm:px-5 py-3.5 sm:py-4 text-base bg-[var(--color-surface-card)]/80 border-2 border-[var(--color-border)] rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20 text-[var(--color-text)] placeholder-[var(--color-text-placeholder)] transition-all duration-200 card-shadow"
           autofocus
         />
-        <DueDatePicker v-model="newDueDate" />
-        <PrioritySelect v-model="newPriority" />
-        <button
-          class="inline-flex items-center gap-2 px-6 py-4 text-sm font-semibold text-white btn-gradient rounded-2xl cursor-pointer"
-          @click="handleAdd"
-        >
-          <Plus class="w-5 h-5" />
-          添加
-        </button>
+        <!-- Mobile: options row -->
+        <div class="flex gap-2 sm:gap-3 items-center justify-between sm:justify-start">
+          <div class="flex gap-2">
+            <DueDatePicker v-model="newDueDate" />
+            <PrioritySelect v-model="newPriority" />
+          </div>
+          <button
+            class="inline-flex items-center justify-center gap-2 px-5 sm:px-6 py-3.5 sm:py-4 text-sm font-semibold text-white btn-gradient rounded-2xl cursor-pointer min-h-[48px]"
+            @click="handleAdd"
+          >
+            <Plus class="w-5 h-5" />
+            <span>添加</span>
+          </button>
+        </div>
       </div>
 
       <!-- Loading -->
