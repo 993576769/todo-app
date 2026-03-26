@@ -2,19 +2,51 @@
 
 @theme {
   /* Blue-purple gradient theme */
-  --color-primary: #6366f1;
-  --color-primary-hover: #4f46e5;
-  --color-primary-light: #818cf8;
-  --color-secondary: #a855f7;
-  --color-accent: #ec4899;
-  --color-gradient-start: #6366f1;
-  --color-gradient-end: #a855f7;
+  --color-primary: #818cf8;
+  --color-primary-hover: #a5b4fc;
+  --color-primary-light: #a5b4fc;
+  --color-secondary: #c084fc;
+  --color-accent: #f472b6;
+  --color-gradient-start: #818cf8;
+  --color-gradient-end: #c084fc;
+}
+
+/* Light theme (default) */
+:root {
+  --color-surface: #f8fafc;
+  --color-surface-elevated: #ffffff;
+  --color-surface-card: #ffffff;
+  --color-border: #e2e8f0;
+  --color-border-light: #f1f5f9;
+  --color-text: #1e293b;
+  --color-text-muted: #64748b;
+  --color-text-placeholder: #94a3b8;
+  --color-bg-gradient-from: #f8fafc;
+  --color-bg-gradient-via: #f1f5f9;
+  --color-bg-gradient-to: #e2e8f0;
+}
+
+/* Dark theme */
+:root.dark {
+  --color-surface: #1e293b;
+  --color-surface-elevated: #334155;
+  --color-surface-card: #1e293b;
+  --color-border: #475569;
+  --color-border-light: #334155;
+  --color-text: #f1f5f9;
+  --color-text-muted: #94a3b8;
+  --color-text-placeholder: #64748b;
+  --color-bg-gradient-from: #0f172a;
+  --color-bg-gradient-via: #1e293b;
+  --color-bg-gradient-to: #0f172a;
 }
 
 @layer base {
   body {
-    @apply bg-gradient-to-br from-slate-50 via-white to-indigo-50 text-gray-900 min-h-screen leading-relaxed;
+    @apply min-h-screen leading-relaxed;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(to bottom right, var(--color-bg-gradient-from), var(--color-bg-gradient-via), var(--color-bg-gradient-to));
+    color: var(--color-text);
   }
 }
 
@@ -31,10 +63,18 @@
   }
 
   .card-shadow {
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.05), 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 0 0 1px rgb(0 0 0 / 0.02);
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 10px 15px -3px rgb(0 0 0 / 0.05), 0 0 0 1px rgb(0 0 0 / 0.03);
+  }
+
+  :root.dark .card-shadow {
+    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.3), 0 10px 15px -3px rgb(0 0 0 / 0.2), 0 0 0 1px rgb(255 255 255 / 0.05);
   }
 
   .card-shadow-lg {
-    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.08), 0 20px 40px -10px rgb(0 0 0 / 0.06), 0 0 0 1px rgb(0 0 0 / 0.03);
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.1), 0 20px 40px -10px rgb(0 0 0 / 0.05), 0 0 0 1px rgb(0 0 0 / 0.03);
+  }
+
+  :root.dark .card-shadow-lg {
+    box-shadow: 0 10px 25px -5px rgb(0 0 0 / 0.4), 0 20px 40px -10px rgb(0 0 0 / 0.3), 0 0 0 1px rgb(255 255 255 / 0.05);
   }
 }
