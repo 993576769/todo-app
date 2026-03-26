@@ -1,15 +1,18 @@
 import { defineStore } from 'pinia'
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { pb } from '@/lib/pocketbase'
-import { useLocalStorage } from '@vueuse/core'
 import type { User } from '@/types/pocketbase'
 
 export const useAuthStore = defineStore('auth', () => {
-  // 使用 VueUse 持久化用户信息
-  const user = useLocalStorage<User | null>('todo-user', pb.authStore.model as unknown as User | null)
+  const user = ref<User | null>(null)
+  
+  // 初始化时从 PocketBase 恢复登录状态
+  if (pb.authStore.isValid && pb.authStore.record) {
+    user.value = pb.authStore.record as unknown as User
+  }
   
   // 登录状态
-  const isLoggedIn = computed(() => pb.authStore.isValid)
+  const isLoggedIn = computed(() => !!user.value && pb.authStore.isValid)
   
   // 监听 authStore 变化
   pb.authStore.onChange((_token, model) => {
@@ -31,7 +34,6 @@ export const useAuthStore = defineStore('auth', () => {
       passwordConfirm: password,
       name
     })
-    // 注册后自动登录
     await login(email, password)
     return newUser
   }
@@ -52,7 +54,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 获取用户头像 URL
   const getAvatarUrl = () => {
     if (!user.value?.avatar) return null
-    return pb.getFileUrl(user.value, user.value.avatar)
+    return pb.files.getURL(user.value, user.value.avatar)
   }
   
   return {
