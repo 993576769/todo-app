@@ -1,23 +1,51 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import type { Todo } from '@/types/pocketbase'
-import { Pencil, Trash2, Check, X } from 'lucide-vue-next'
+import { Pencil, Trash2, Check, X, Calendar } from 'lucide-vue-next'
 
 const props = defineProps<{ todo: Todo }>()
 const emit = defineEmits<{
   toggle: [id: string]
   update: [id: string, title: string]
+  updateDueDate: [id: string, dueDate: string | null]
   delete: [id: string]
 }>()
 
 const isEditing = ref(false)
 const editTitle = ref('')
+const showDatePicker = ref(false)
+const dateInputRef = ref<HTMLInputElement>()
 
 const priorityBorderClass = computed(() => {
   switch (props.todo.priority) {
     case 2: return 'border-l-4 border-l-red-500'
     case 1: return 'border-l-4 border-l-yellow-500'
     default: return ''
+  }
+})
+
+const dueDateStatus = computed(() => {
+  if (!props.todo.dueDate || props.todo.completed) return null
+
+  const today = new Date()
+  today.setHours(0, 0, 0, 0)
+  const due = new Date(props.todo.dueDate)
+  due.setHours(0, 0, 0, 0)
+
+  const diffDays = Math.floor((due.getTime() - today.getTime()) / (1000 * 60 * 60 * 24))
+
+  if (diffDays < 0) {
+    return { status: 'overdue', text: '已过期', class: 'text-red-500 bg-red-500/10' }
+  } else if (diffDays === 0) {
+    return { status: 'today', text: '今天', class: 'text-yellow-500 bg-yellow-500/10' }
+  } else if (diffDays === 1) {
+    return { status: 'tomorrow', text: '明天', class: 'text-orange-400 bg-orange-400/10' }
+  } else {
+    return {
+      status: 'upcoming',
+      text: due.toLocaleDateString('zh-CN', { month: 'short', day: 'numeric' }),
+      class: 'text-blue-400 bg-blue-400/10'
+    }
   }
 })
 
@@ -36,6 +64,22 @@ const saveEdit = () => {
 const cancelEdit = () => {
   isEditing.value = false
   editTitle.value = ''
+}
+
+const openDatePicker = () => {
+  showDatePicker.value = true
+  dateInputRef.value?.showPicker?.()
+}
+
+const handleDateChange = (e: Event) => {
+  const target = e.target as HTMLInputElement
+  emit('updateDueDate', props.todo.id, target.value || null)
+  showDatePicker.value = false
+}
+
+const clearDueDate = () => {
+  emit('updateDueDate', props.todo.id, null)
+  showDatePicker.value = false
 }
 
 // v-focus directive
@@ -92,6 +136,42 @@ const vFocus = {
       >
         {{ todo.title }}
       </span>
+
+      <!-- Due Date Display -->
+      <div v-if="dueDateStatus" class="relative flex items-center">
+        <input
+          ref="dateInputRef"
+          type="date"
+          :value="todo.dueDate ?? ''"
+          class="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+          @change="handleDateChange"
+        />
+        <button
+          class="inline-flex items-center gap-1 px-2 py-1 text-xs font-medium rounded-lg transition-all duration-200 cursor-pointer"
+          :class="dueDateStatus.class"
+          @click.stop="openDatePicker"
+        >
+          <Calendar class="w-3 h-3" />
+          {{ dueDateStatus.text }}
+        </button>
+      </div>
+      <div v-else-if="!todo.completed" class="relative flex items-center">
+        <input
+          ref="dateInputRef"
+          type="date"
+          :value="todo.dueDate ?? ''"
+          class="absolute inset-0 opacity-0 w-full h-full cursor-pointer"
+          @change="handleDateChange"
+        />
+        <button
+          class="p-1.5 text-[var(--color-text-muted)] hover:text-primary hover:bg-primary/10 rounded-lg transition-all duration-200 opacity-0 group-hover:opacity-100 cursor-pointer"
+          title="设置截止日期"
+          @click.stop="openDatePicker"
+        >
+          <Calendar class="w-3.5 h-3.5" />
+        </button>
+      </div>
+
       <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">
         <button
           class="p-2 text-[var(--color-text-muted)] hover:text-primary hover:bg-primary/10 rounded-xl transition-all duration-200 cursor-pointer"

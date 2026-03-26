@@ -32,7 +32,7 @@ export const useTodosStore = defineStore('todos', () => {
   }
   
   // 添加 todo（不手动添加，依赖 realtime 订阅）
-  const addTodo = async (title: string, priority: number = 0) => {
+  const addTodo = async (title: string, priority: number = 0, dueDate: string | null = null) => {
     if (!auth.user) return
 
     try {
@@ -40,6 +40,7 @@ export const useTodosStore = defineStore('todos', () => {
         title,
         completed: false,
         priority,
+        dueDate,
         user: auth.user.id
       })
       // 不手动添加，让 realtime 订阅处理
@@ -93,6 +94,20 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
+
+  // 更新截止日期
+  const updateDueDate = async (id: string, dueDate: string | null) => {
+    try {
+      const updated = await pb.collection('todos').update<Todo>(id, { dueDate })
+      const idx = todos.value.findIndex(t => t.id === id)
+      if (idx !== -1) {
+        todos.value[idx] = updated
+      }
+    } catch (e) {
+      error.value = '更新截止日期失败'
+      throw e
+    }
+  }
   
   // 实时订阅
   const subscribe = () => {
@@ -132,6 +147,7 @@ export const useTodosStore = defineStore('todos', () => {
     addTodo,
     toggleTodo,
     updateTodo,
+    updateDueDate,
     deleteTodo,
     subscribe,
     unsubscribe
