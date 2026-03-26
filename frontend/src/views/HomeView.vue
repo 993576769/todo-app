@@ -4,6 +4,7 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useTodosStore } from '@/stores/todos'
 import TodoItem from '@/components/TodoItem.vue'
+import { CheckSquare, LogOut, Plus, Loader2 } from 'lucide-vue-next'
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -25,7 +26,7 @@ onUnmounted(() => {
 // 添加 todo
 const handleAdd = async () => {
   if (!newTitle.value.trim()) return
-  
+
   try {
     await todosStore.addTodo(newTitle.value.trim())
     newTitle.value = ''
@@ -42,40 +43,60 @@ const handleLogout = () => {
 </script>
 
 <template>
-  <div class="home">
+  <div class="min-h-screen">
     <!-- Header -->
-    <header class="header">
-      <div class="container header-content">
-        <h1 class="logo">📝 Todo</h1>
-        <div class="user-info">
-          <span class="user-name">{{ auth.user?.name || auth.user?.email }}</span>
-          <button class="btn btn-ghost" @click="handleLogout">登出</button>
+    <header class="bg-white border-b border-gray-200 py-4 sticky top-0 z-10">
+      <div class="max-w-[640px] mx-auto px-4 flex justify-between items-center">
+        <h1 class="text-xl font-bold text-primary flex items-center gap-2">
+          <CheckSquare class="w-6 h-6" />
+          Todo
+        </h1>
+        <div class="flex items-center gap-3">
+          <span class="text-gray-500 text-sm">{{ auth.user?.name || auth.user?.email }}</span>
+          <button
+            class="inline-flex items-center gap-1 px-3 py-2 text-sm font-medium text-gray-500 rounded-lg hover:bg-gray-100 transition-colors"
+            @click="handleLogout"
+          >
+            <LogOut class="w-4 h-4" />
+            登出
+          </button>
         </div>
       </div>
     </header>
 
     <!-- Main -->
-    <main class="main container">
+    <main class="max-w-[640px] mx-auto px-4 pt-8">
       <!-- Input -->
-      <div class="input-group">
+      <div class="flex gap-2 mb-6">
         <input
           v-model="newTitle"
           @keyup.enter="handleAdd"
           placeholder="添加新任务..."
-          class="input"
+          class="flex-1 px-4 py-3 text-base bg-white border border-gray-200 rounded-lg focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-colors"
           autofocus
         />
-        <button class="btn btn-primary" @click="handleAdd">添加</button>
+        <button
+          class="inline-flex items-center gap-1 px-4 py-2 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary-hover transition-colors"
+          @click="handleAdd"
+        >
+          <Plus class="w-4 h-4" />
+          添加
+        </button>
       </div>
 
       <!-- Loading -->
-      <div v-if="todosStore.loading" class="loading">加载中...</div>
+      <div v-if="todosStore.loading" class="text-center py-8 text-gray-500">
+        <Loader2 class="w-6 h-6 animate-spin mx-auto mb-2" />
+        加载中...
+      </div>
 
       <!-- Error -->
-      <div v-if="todosStore.error" class="error">{{ todosStore.error }}</div>
+      <div v-if="todosStore.error" class="bg-red-50 text-red-600 p-3 rounded-lg mb-4 text-sm">
+        {{ todosStore.error }}
+      </div>
 
       <!-- Todo List -->
-      <div class="todo-list card">
+      <div class="bg-white rounded-xl shadow-sm overflow-hidden">
         <TodoItem
           v-for="todo in todosStore.todos"
           :key="todo.id"
@@ -84,95 +105,16 @@ const handleLogout = () => {
           @update="todosStore.updateTodo"
           @delete="todosStore.deleteTodo"
         />
-        
-        <div v-if="todosStore.todos.length === 0 && !todosStore.loading" class="empty">
+
+        <div v-if="todosStore.todos.length === 0 && !todosStore.loading" class="text-center py-8 text-gray-500">
           暂无任务，添加一个吧！
         </div>
       </div>
 
       <!-- Stats -->
-      <div v-if="todosStore.todos.length > 0" class="stats">
-        <span>{{ todosStore.todos.filter(t => t.completed).length }} / {{ todosStore.todos.length }} 已完成</span>
+      <div v-if="todosStore.todos.length > 0" class="mt-4 text-center text-gray-500 text-sm">
+        {{ todosStore.todos.filter(t => t.completed).length }} / {{ todosStore.todos.length }} 已完成
       </div>
     </main>
   </div>
 </template>
-
-<style scoped>
-.home {
-  min-height: 100vh;
-}
-
-.header {
-  background: white;
-  border-bottom: 1px solid var(--border);
-  padding: 1rem 0;
-  position: sticky;
-  top: 0;
-  z-index: 10;
-}
-
-.header-content {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.logo {
-  font-size: 1.5rem;
-  font-weight: 700;
-  color: var(--primary);
-}
-
-.user-info {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-}
-
-.user-name {
-  color: var(--text-light);
-  font-size: 0.875rem;
-}
-
-.main {
-  padding-top: 2rem;
-}
-
-.input-group {
-  display: flex;
-  gap: 0.5rem;
-  margin-bottom: 1.5rem;
-}
-
-.input-group .input {
-  flex: 1;
-}
-
-.loading,
-.empty {
-  text-align: center;
-  padding: 2rem;
-  color: var(--text-light);
-}
-
-.error {
-  background: #fef2f2;
-  color: var(--danger);
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  margin-bottom: 1rem;
-  font-size: 0.875rem;
-}
-
-.todo-list {
-  overflow: hidden;
-}
-
-.stats {
-  margin-top: 1rem;
-  text-align: center;
-  color: var(--text-light);
-  font-size: 0.875rem;
-}
-</style>

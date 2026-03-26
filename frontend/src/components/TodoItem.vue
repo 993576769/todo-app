@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import type { Todo } from '@/types/pocketbase'
+import { Pencil, Trash2, Check, X } from 'lucide-vue-next'
 
 const props = defineProps<{ todo: Todo }>()
 const emit = defineEmits<{
@@ -28,110 +29,75 @@ const cancelEdit = () => {
   isEditing.value = false
   editTitle.value = ''
 }
+
+// v-focus directive
+const vFocus = {
+  mounted(el: HTMLInputElement) {
+    el.focus()
+    el.select()
+  }
+}
 </script>
 
 <template>
-  <div class="todo-item" :class="{ completed: todo.completed }">
-    <input
-      type="checkbox"
-      :checked="todo.completed"
-      @change="emit('toggle', todo.id)"
-      class="checkbox"
-    />
+  <div
+    class="group flex items-center gap-3 px-4 py-4 border-b border-gray-100 last:border-b-0 hover:bg-gray-50 transition-colors"
+    :class="{ 'opacity-60': todo.completed }"
+  >
+    <button
+      class="w-5 h-5 rounded border-2 flex items-center justify-center transition-colors shrink-0"
+      :class="todo.completed
+        ? 'bg-primary border-primary text-white'
+        : 'border-gray-300 hover:border-primary'"
+      @click="emit('toggle', todo.id)"
+    >
+      <Check v-if="todo.completed" class="w-3 h-3" />
+    </button>
 
     <template v-if="isEditing">
       <input
         v-model="editTitle"
         @keyup.enter="saveEdit"
         @keyup.escape="cancelEdit"
-        class="edit-input"
+        class="flex-1 px-2 py-1.5 text-base border border-primary rounded"
         v-focus
       />
-      <button class="btn btn-sm btn-primary" @click="saveEdit">保存</button>
-      <button class="btn btn-sm btn-ghost" @click="cancelEdit">取消</button>
+      <button
+        class="px-2 py-1 text-xs font-medium text-white bg-primary rounded hover:bg-primary-hover transition-colors"
+        @click="saveEdit"
+      >
+        <Check class="w-4 h-4" />
+      </button>
+      <button
+        class="px-2 py-1 text-xs font-medium text-gray-500 hover:bg-gray-100 rounded transition-colors"
+        @click="cancelEdit"
+      >
+        <X class="w-4 h-4" />
+      </button>
     </template>
 
     <template v-else>
-      <span class="title" @dblclick="startEdit">{{ todo.title }}</span>
-      <div class="actions">
-        <button class="btn btn-sm btn-ghost" @click="startEdit">编辑</button>
-        <button class="btn btn-sm btn-danger" @click="emit('delete', todo.id)">删除</button>
+      <span
+        class="flex-1 text-base cursor-text"
+        :class="todo.completed ? 'line-through text-gray-400' : 'text-gray-900'"
+        @dblclick="startEdit"
+      >
+        {{ todo.title }}
+      </span>
+      <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+        <button
+          class="p-1.5 text-gray-400 hover:text-primary hover:bg-gray-100 rounded transition-colors"
+          @click="startEdit"
+        >
+          <Pencil class="w-4 h-4" />
+        </button>
+        <button
+          class="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
+          @click="emit('delete', todo.id)"
+        >
+          <Trash2 class="w-4 h-4" />
+        </button>
       </div>
     </template>
   </div>
 </template>
-
-<script lang="ts">
-// v-focus 指令
-export default {
-  directives: {
-    focus: {
-      mounted(el: HTMLInputElement) {
-        el.focus()
-        el.select()
-      }
-    }
-  }
-}
-</script>
-
-<style scoped>
-.todo-item {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  padding: 1rem;
-  border-bottom: 1px solid var(--border);
-  transition: background 0.15s ease;
-}
-
-.todo-item:last-child {
-  border-bottom: none;
-}
-
-.todo-item:hover {
-  background: var(--bg);
-}
-
-.todo-item.completed .title {
-  text-decoration: line-through;
-  color: var(--text-light);
-}
-
-.checkbox {
-  width: 1.25rem;
-  height: 1.25rem;
-  cursor: pointer;
-  accent-color: var(--primary);
-}
-
-.title {
-  flex: 1;
-  font-size: 1rem;
-  cursor: text;
-}
-
-.edit-input {
-  flex: 1;
-  padding: 0.375rem 0.5rem;
-  font-size: 1rem;
-  border: 1px solid var(--primary);
-  border-radius: 0.375rem;
-}
-
-.actions {
-  display: flex;
-  gap: 0.375rem;
-  opacity: 0;
-  transition: opacity 0.15s ease;
-}
-
-.todo-item:hover .actions {
-  opacity: 1;
-}
-
-.btn-sm {
-  padding: 0.25rem 0.5rem;
-  font-size: 0.75rem;
-}
-</style>
