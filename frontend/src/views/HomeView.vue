@@ -5,6 +5,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTodosStore } from '@/stores/todos'
 import TodoItem from '@/components/TodoItem.vue'
 import ThemeToggle from '@/components/ThemeToggle.vue'
+import PrioritySelect from '@/components/PrioritySelect.vue'
 import { CheckSquare, LogOut, Plus, Loader2, Sparkles } from 'lucide-vue-next'
 
 const router = useRouter()
@@ -12,6 +13,7 @@ const auth = useAuthStore()
 const todosStore = useTodosStore()
 
 const newTitle = ref('')
+const newPriority = ref(0)
 
 // 初始化
 onMounted(async () => {
@@ -29,8 +31,9 @@ const handleAdd = async () => {
   if (!newTitle.value.trim()) return
 
   try {
-    await todosStore.addTodo(newTitle.value.trim())
+    await todosStore.addTodo(newTitle.value.trim(), newPriority.value)
     newTitle.value = ''
+    newPriority.value = 0
   } catch (e) {
     console.error(e)
   }
@@ -82,6 +85,7 @@ const handleLogout = () => {
           class="flex-1 px-5 py-4 text-base bg-[var(--color-surface-card)]/80 border-2 border-[var(--color-border)] rounded-2xl focus:outline-none focus:border-primary focus:ring-4 focus:ring-primary/20 text-[var(--color-text)] placeholder-[var(--color-text-placeholder)] transition-all duration-200 card-shadow"
           autofocus
         />
+        <PrioritySelect v-model="newPriority" />
         <button
           class="inline-flex items-center gap-2 px-6 py-4 text-sm font-semibold text-white btn-gradient rounded-2xl cursor-pointer"
           @click="handleAdd"

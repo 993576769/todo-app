@@ -16,6 +16,7 @@ export interface Todo {
   id: string
   title: string
   completed: boolean
+  priority: number
   user: string
   created: string
   updated: string

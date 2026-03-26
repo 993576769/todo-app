@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import type { Todo } from '@/types/pocketbase'
 import { Pencil, Trash2, Check, X } from 'lucide-vue-next'
 
@@ -12,6 +12,14 @@ const emit = defineEmits<{
 
 const isEditing = ref(false)
 const editTitle = ref('')
+
+const priorityBorderClass = computed(() => {
+  switch (props.todo.priority) {
+    case 2: return 'border-l-4 border-l-red-500'
+    case 1: return 'border-l-4 border-l-yellow-500'
+    default: return ''
+  }
+})
 
 const startEdit = () => {
   editTitle.value = props.todo.title
@@ -42,7 +50,7 @@ const vFocus = {
 <template>
   <div
     class="group flex items-center gap-4 px-5 py-4 border-b border-[var(--color-border)]/30 last:border-b-0 hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/10 transition-all duration-200"
-    :class="{ 'bg-green-500/10': todo.completed }"
+    :class="{ 'bg-green-500/10': todo.completed, [priorityBorderClass]: true }"
   >
     <button
       class="w-6 h-6 rounded-lg border-2 flex items-center justify-center transition-all duration-200 shrink-0 cursor-pointer"

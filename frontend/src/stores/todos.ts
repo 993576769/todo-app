@@ -20,7 +20,7 @@ export const useTodosStore = defineStore('todos', () => {
     
     try {
       const result = await pb.collection('todos').getList<Todo>(1, 100, {
-        sort: '-created'
+        sort: '-priority,-created'
       })
       todos.value = result.items
     } catch (e) {
@@ -32,13 +32,14 @@ export const useTodosStore = defineStore('todos', () => {
   }
   
   // 添加 todo（不手动添加，依赖 realtime 订阅）
-  const addTodo = async (title: string) => {
+  const addTodo = async (title: string, priority: number = 0) => {
     if (!auth.user) return
-    
+
     try {
       const todo = await pb.collection('todos').create<Todo>({
         title,
         completed: false,
+        priority,
         user: auth.user.id
       })
       // 不手动添加，让 realtime 订阅处理
