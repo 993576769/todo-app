@@ -31,7 +31,7 @@ export const useTodosStore = defineStore('todos', () => {
     }
   }
   
-  // 添加 todo
+  // 添加 todo（不手动添加，依赖 realtime 订阅）
   const addTodo = async (title: string) => {
     if (!auth.user) return
     
@@ -41,7 +41,7 @@ export const useTodosStore = defineStore('todos', () => {
         completed: false,
         user: auth.user.id
       })
-      todos.value.unshift(todo)
+      // 不手动添加，让 realtime 订阅处理
       return todo
     } catch (e) {
       error.value = '添加任务失败'
@@ -86,7 +86,7 @@ export const useTodosStore = defineStore('todos', () => {
   const deleteTodo = async (id: string) => {
     try {
       await pb.collection('todos').delete(id)
-      todos.value = todos.value.filter(t => t.id !== id)
+      // 不手动删除，让 realtime 订阅处理
     } catch (e) {
       error.value = '删除任务失败'
       throw e
@@ -101,6 +101,7 @@ export const useTodosStore = defineStore('todos', () => {
       if (record.user !== auth.user?.id) return
       
       if (e.action === 'create') {
+        // 检查是否已存在，避免重复添加
         if (!todos.value.find(t => t.id === record.id)) {
           todos.value.unshift(record)
         }
