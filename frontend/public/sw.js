@@ -1,5 +1,5 @@
 // Service Worker for offline support
-const CACHE_NAME = 'todo-app-v1'
+const CACHE_NAME = 'todo-app-v2'
 const STATIC_ASSETS = [
   '/',
   '/index.html',
@@ -35,13 +35,24 @@ self.addEventListener('fetch', (event) => {
   const { request } = event
   const url = new URL(request.url)
 
+  // 只处理同源请求和 http/https 协议
+  if (!url.protocol.startsWith('http')) {
+    return
+  }
+
+  // POST/PUT/DELETE 请求不缓存，直接走网络
+  if (request.method !== 'GET') {
+    event.respondWith(fetch(request))
+    return
+  }
+
   // API 请求：网络优先
   if (url.pathname.startsWith('/api/')) {
     event.respondWith(
       fetch(request)
         .then((response) => {
-          // 缓存成功的响应
-          if (response.ok) {
+          // 只缓存成功的 GET 响应
+          if (response.ok && request.method === 'GET') {
             const responseClone = response.clone()
             caches.open(CACHE_NAME).then((cache) => {
               cache.put(request, responseClone)
@@ -64,7 +75,8 @@ self.addEventListener('fetch', (event) => {
         return cachedResponse
       }
       return fetch(request).then((response) => {
-        if (response.ok) {
+        // 只缓存成功的响应
+        if (response.ok && request.method === 'GET') {
           const responseClone = response.clone()
           caches.open(CACHE_NAME).then((cache) => {
             cache.put(request, responseClone)
@@ -84,8 +96,6 @@ self.addEventListener('sync', (event) => {
 })
 
 async function syncTodos() {
-  // 从 IndexedDB 读取待同步数据并发送到服务器
-  // 实际实现需要配合 IndexedDB 存储
   console.log('Background sync: syncing todos...')
 }
 
@@ -97,7 +107,6 @@ self.addEventListener('push', (event) => {
     self.registration.showNotification(data.title || 'Todo App', {
       body: data.body || '你有新的提醒',
       icon: '/icons/icon-192.png',
-      badge: '/icons/badge-72.png',
       data: data.url
     })
   )
