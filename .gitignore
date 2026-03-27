@@ -31,3 +31,5 @@ pocketbase/pb_data/
 
 # Docker certs (server-specific)
 certs/
+vite.config.js
+vite.config.d.ts

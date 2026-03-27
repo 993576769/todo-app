@@ -2,6 +2,8 @@
 import { ref } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { CheckSquare, Mail, Lock, User, Loader2 } from 'lucide-vue-next'
+import ThemeToggle from '@/components/ThemeToggle.vue'
 
 const router = useRouter()
 const route = useRoute()
@@ -23,21 +25,21 @@ const toggleMode = () => {
 // 提交
 const handleSubmit = async () => {
   error.value = ''
-  
+
   if (!email.value || !password.value) {
     error.value = '请填写邮箱和密码'
     return
   }
-  
+
   loading.value = true
-  
+
   try {
     if (isLogin.value) {
       await auth.login(email.value, password.value)
     } else {
       await auth.register(email.value, password.value, name.value || undefined)
     }
-    
+
     // 跳转到原页面或首页
     const redirect = route.query.redirect as string
     router.push(redirect || { name: 'home' })
@@ -50,142 +52,91 @@ const handleSubmit = async () => {
 </script>
 
 <template>
-  <div class="login-page">
-    <div class="login-card card">
-      <h1 class="title">📝 Todo</h1>
-      <p class="subtitle">{{ isLogin ? '登录你的账户' : '创建新账户' }}</p>
+  <div class="min-h-screen flex items-center justify-center p-3 sm:p-4">
+    <!-- Theme toggle in corner -->
+    <div class="absolute top-3 sm:top-4 right-3 sm:right-4">
+      <ThemeToggle />
+    </div>
 
-      <form @submit.prevent="handleSubmit" class="form">
-        <div v-if="!isLogin" class="form-group">
-          <label class="label">姓名（可选）</label>
-          <input
-            v-model="name"
-            type="text"
-            class="input"
-            placeholder="你的名字"
-          />
+    <div class="w-full max-w-[420px] bg-[var(--color-surface-card)]/80 backdrop-blur-xl rounded-2xl sm:card-shadow-lg p-6 sm:p-8 transition-all duration-300 hover:shadow-xl border border-[var(--color-border)]/30">
+      <!-- Logo & Title -->
+      <div class="text-center mb-6 sm:mb-8">
+        <div class="inline-flex items-center justify-center w-14 h-14 sm:w-16 sm:h-16 rounded-2xl bg-gradient-to-br from-primary to-secondary mb-3 sm:mb-4 shadow-lg shadow-primary/25">
+          <CheckSquare class="w-7 h-7 sm:w-8 sm:h-8 text-white" />
+        </div>
+        <h1 class="text-xl sm:text-2xl font-bold bg-gradient-to-r from-primary to-secondary bg-clip-text text-transparent">
+          Todo
+        </h1>
+        <p class="text-[var(--color-text-muted)] mt-1.5 sm:mt-2 text-sm sm:text-base">{{ isLogin ? '登录你的账户' : '创建新账户' }}</p>
+      </div>
+
+      <form @submit.prevent="handleSubmit" class="flex flex-col gap-4 sm:gap-5">
+        <div v-if="!isLogin" class="flex flex-col gap-1.5 sm:gap-2">
+          <label class="text-sm font-medium text-[var(--color-text)]">姓名（可选）</label>
+          <div class="relative group">
+            <User class="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)] group-focus-within:text-primary transition-colors" />
+            <input
+              v-model="name"
+              type="text"
+              class="w-full pl-11 sm:pl-12 pr-4 py-3.5 text-base bg-[var(--color-surface-elevated)]/50 border-2 border-[var(--color-border)] rounded-xl focus:outline-none focus:border-primary focus:bg-[var(--color-surface-elevated)] focus:ring-4 focus:ring-primary/20 text-[var(--color-text)] placeholder-[var(--color-text-placeholder)] transition-all duration-200 min-h-[48px]"
+              placeholder="你的名字"
+            />
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="label">邮箱</label>
-          <input
-            v-model="email"
-            type="email"
-            class="input"
-            placeholder="your@email.com"
-            required
-          />
+        <div class="flex flex-col gap-1.5 sm:gap-2">
+          <label class="text-sm font-medium text-[var(--color-text)]">邮箱</label>
+          <div class="relative group">
+            <Mail class="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)] group-focus-within:text-primary transition-colors" />
+            <input
+              v-model="email"
+              type="email"
+              class="w-full pl-11 sm:pl-12 pr-4 py-3.5 text-base bg-[var(--color-surface-elevated)]/50 border-2 border-[var(--color-border)] rounded-xl focus:outline-none focus:border-primary focus:bg-[var(--color-surface-elevated)] focus:ring-4 focus:ring-primary/20 text-[var(--color-text)] placeholder-[var(--color-text-placeholder)] transition-all duration-200 min-h-[48px]"
+              placeholder="your@email.com"
+              required
+            />
+          </div>
         </div>
 
-        <div class="form-group">
-          <label class="label">密码</label>
-          <input
-            v-model="password"
-            type="password"
-            class="input"
-            placeholder="至少8位"
-            required
-            minlength="8"
-          />
+        <div class="flex flex-col gap-1.5 sm:gap-2">
+          <label class="text-sm font-medium text-[var(--color-text)]">密码</label>
+          <div class="relative group">
+            <Lock class="absolute left-3.5 sm:left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-[var(--color-text-muted)] group-focus-within:text-primary transition-colors" />
+            <input
+              v-model="password"
+              type="password"
+              class="w-full pl-11 sm:pl-12 pr-4 py-3.5 text-base bg-[var(--color-surface-elevated)]/50 border-2 border-[var(--color-border)] rounded-xl focus:outline-none focus:border-primary focus:bg-[var(--color-surface-elevated)] focus:ring-4 focus:ring-primary/20 text-[var(--color-text)] placeholder-[var(--color-text-placeholder)] transition-all duration-200 min-h-[48px]"
+              placeholder="至少8位"
+              required
+              minlength="8"
+            />
+          </div>
         </div>
 
-        <div v-if="error" class="error">{{ error }}</div>
+        <div v-if="error" class="bg-red-500/10 border border-red-500/20 text-red-400 p-3 sm:p-3.5 rounded-xl text-sm text-center flex items-center justify-center gap-2">
+          <span class="w-1.5 h-1.5 bg-red-500 rounded-full"></span>
+          {{ error }}
+        </div>
 
-        <button type="submit" class="btn btn-primary btn-block" :disabled="loading">
+        <button
+          type="submit"
+          class="w-full py-3.5 sm:py-4 text-base font-semibold text-white btn-gradient rounded-xl disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 cursor-pointer min-h-[48px]"
+          :disabled="loading"
+        >
+          <Loader2 v-if="loading" class="w-5 h-5 animate-spin" />
           {{ loading ? '处理中...' : (isLogin ? '登录' : '注册') }}
         </button>
       </form>
 
-      <div class="footer">
+      <div class="mt-6 sm:mt-8 text-center text-sm text-[var(--color-text-muted)]">
         <span>{{ isLogin ? '没有账户？' : '已有账户？' }}</span>
-        <button class="btn-link" @click="toggleMode">
+        <button
+          class="text-primary font-semibold hover:text-primary-hover ml-1 cursor-pointer transition-colors hover:underline underline-offset-2"
+          @click="toggleMode"
+        >
           {{ isLogin ? '立即注册' : '立即登录' }}
         </button>
       </div>
     </div>
   </div>
 </template>
-
-<style scoped>
-.login-page {
-  min-height: 100vh;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 1rem;
-}
-
-.login-card {
-  width: 100%;
-  max-width: 400px;
-  padding: 2rem;
-}
-
-.title {
-  font-size: 2rem;
-  font-weight: 700;
-  text-align: center;
-  color: var(--primary);
-  margin-bottom: 0.5rem;
-}
-
-.subtitle {
-  text-align: center;
-  color: var(--text-light);
-  margin-bottom: 1.5rem;
-}
-
-.form {
-  display: flex;
-  flex-direction: column;
-  gap: 1rem;
-}
-
-.form-group {
-  display: flex;
-  flex-direction: column;
-  gap: 0.375rem;
-}
-
-.label {
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--text);
-}
-
-.error {
-  background: #fef2f2;
-  color: var(--danger);
-  padding: 0.75rem;
-  border-radius: 0.5rem;
-  font-size: 0.875rem;
-  text-align: center;
-}
-
-.btn-block {
-  width: 100%;
-  padding: 0.875rem;
-  font-size: 1rem;
-  margin-top: 0.5rem;
-}
-
-.btn-link {
-  background: none;
-  border: none;
-  color: var(--primary);
-  cursor: pointer;
-  font-size: 0.875rem;
-  font-weight: 500;
-}
-
-.btn-link:hover {
-  text-decoration: underline;
-}
-
-.footer {
-  margin-top: 1.5rem;
-  text-align: center;
-  font-size: 0.875rem;
-  color: var(--text-light);
-}
-</style>
