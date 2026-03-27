@@ -143,6 +143,7 @@ const handleDragEnd = () => {
           </div>
         </div>
       </div>
+      <span class="version-badge">v{{ BUILD_VERSION }}</span>
     </header>
 
     <!-- Main -->
@@ -315,12 +316,22 @@ const handleDragEnd = () => {
   position: sticky;
   top: 0;
   z-index: 10;
+  position: relative;
 }
 
 .header-content {
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+
+.version-badge {
+  position: absolute;
+  bottom: 0.25rem;
+  right: 1rem;
+  font-size: 0.625rem;
+  color: var(--text-light);
+  opacity: 0.5;
 }
 
 .logo {
