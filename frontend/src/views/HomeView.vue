@@ -4,7 +4,10 @@ import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { useTodosStore } from '@/stores/todos'
 import TodoItem from '@/components/TodoItem.vue'
+import { useOffline } from '@/composables/useOffline'
 import type { Priority, Theme } from '@/types/pocketbase'
+
+const { isOffline } = useOffline()
 
 const router = useRouter()
 const auth = useAuthStore()
@@ -141,6 +144,11 @@ const handleDragEnd = () => {
 
     <!-- Main -->
     <main class="main container">
+      <!-- 离线提示 -->
+      <div v-if="isOffline" class="offline-banner">
+        ⚠️ 你当前处于离线状态，部分功能可能不可用
+      </div>
+
       <!-- 搜索栏 -->
       <div class="search-bar">
         <input
@@ -349,6 +357,17 @@ const handleDragEnd = () => {
 
 .main {
   padding-top: 2rem;
+}
+
+/* 离线提示 */
+.offline-banner {
+  background: var(--warning);
+  color: white;
+  padding: 0.75rem 1rem;
+  border-radius: 0.5rem;
+  margin-bottom: 1rem;
+  text-align: center;
+  font-size: 0.875rem;
 }
 
 /* 搜索栏 */
