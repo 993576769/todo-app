@@ -58,6 +58,9 @@ const themeIcon = () => {
   return '💻'
 }
 
+// 版本标识
+const BUILD_VERSION = '2026.03.27-v2'
+
 // 初始化
 onMounted(async () => {
   initTheme()
@@ -292,6 +295,9 @@ const handleDragEnd = () => {
         <span v-if="todosStore.stats.overdue > 0" class="stat-item overdue">
           过期: <strong>{{ todosStore.stats.overdue }}</strong>
         </span>
+        <span class="stat-item version">
+          v{{ BUILD_VERSION }}
+        </span>
       </div>
     </main>
   </div>
@@ -504,6 +510,11 @@ const handleDragEnd = () => {
 
 .stat-item.overdue {
   color: var(--danger);
+}
+
+.stat-item.version {
+  font-size: 0.75rem;
+  opacity: 0.5;
 }
 
 .stat-item strong {
