@@ -88,6 +88,9 @@ jobs:
             # 拉取最新镜像
             docker compose pull
             
+            # 运行 PocketBase 迁移（自动应用 pb_migrations）
+            docker compose run --rm pocketbase /pocketbase/pocketbase migrate
+            
             # 重启服务
             docker compose up -d
             
