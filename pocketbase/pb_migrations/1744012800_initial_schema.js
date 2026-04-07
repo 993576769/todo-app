@@ -1,0 +1,155 @@
+// PocketBase Migration: 初始化数据库 schema
+// 创建 users 和 todos collections
+// 适用于 PocketBase v0.23+
+
+migrate((app) => {
+  // ====== 创建 users collection ======
+  const users = new Collection({
+    name: "users",
+    type: "auth",
+    system: true,
+    schema: [
+      {
+        name: "name",
+        type: "text",
+        required: false,
+        options: {
+          min: null,
+          max: null,
+          pattern: ""
+        }
+      },
+      {
+        name: "avatar",
+        type: "file",
+        required: false,
+        options: {
+          maxSelect: 1,
+          maxSize: 5242880,
+          mimeTypes: ["image/jpeg", "image/png", "image/gif", "image/webp"]
+        }
+      }
+    ],
+    options: {
+      allowEmailAuth: true,
+      allowOAuth2Auth: false,
+      allowUsernameAuth: false,
+      requireEmail: true
+    }
+  });
+
+  app.save(users);
+
+  // ====== 创建 todos collection ======
+  const todos = new Collection({
+    name: "todos",
+    type: "base",
+    system: false,
+    schema: [
+      {
+        name: "title",
+        type: "text",
+        required: true,
+        options: {
+          min: 1,
+          max: 500,
+          pattern: ""
+        }
+      },
+      {
+        name: "description",
+        type: "text",
+        required: false,
+        options: {
+          min: null,
+          max: 2000,
+          pattern: ""
+        }
+      },
+      {
+        name: "completed",
+        type: "bool",
+        required: false,
+        options: {}
+      },
+      {
+        name: "priority",
+        type: "select",
+        required: false,
+        options: {
+          maxSelect: 1,
+          values: ["low", "medium", "high"]
+        }
+      },
+      {
+        name: "due_date",
+        type: "date",
+        required: false,
+        options: {
+          min: "",
+          max: ""
+        }
+      },
+      {
+        name: "tags",
+        type: "json",
+        required: false,
+        options: {}
+      },
+      {
+        name: "sort_order",
+        type: "number",
+        required: false,
+        options: {
+          min: 0,
+          max: null
+        }
+      },
+      {
+        name: "user",
+        type: "relation",
+        required: true,
+        options: {
+          collectionId: users.id,
+          cascadeDelete: true,
+          minSelect: null,
+          maxSelect: 1,
+          displayFields: ["name", "email"]
+        }
+      }
+    ],
+    indexes: [
+      "CREATE INDEX idx_todos_user ON todos (user)",
+      "CREATE INDEX idx_todos_completed ON todos (completed)",
+      "CREATE INDEX idx_todos_priority ON todos (priority)",
+      "CREATE INDEX idx_todos_due_date ON todos (due_date)",
+      "CREATE INDEX idx_todos_sort_order ON todos (sort_order)"
+    ],
+    listRule: "user = @request.auth.id",
+    viewRule: "user = @request.auth.id",
+    createRule: "user = @request.auth.id",
+    updateRule: "user = @request.auth.id",
+    deleteRule: "user = @request.auth.id"
+  });
+
+  return app.save(todos);
+}, (app) => {
+  // ====== 回滚：删除 collections ======
+  try {
+    const todos = app.findCollectionByNameOrId("todos");
+    if (todos) {
+      app.delete(todos);
+    }
+  } catch (e) {
+    // 集合不存在，忽略
+  }
+
+  try {
+    const users = app.findCollectionByNameOrId("users");
+    if (users) {
+      app.delete(users);
+    }
+  } catch (e) {
+    // 集合不存在，忽略
+  }
+});
