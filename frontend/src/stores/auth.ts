@@ -3,7 +3,7 @@ import { ref, computed } from 'vue'
 import { pb } from '@/lib/pocketbase'
 import { useThemeStore } from '@/stores/theme'
 import { Collections } from '@/types/pocketbase.generated'
-import type { Theme, User, UserCreate, UserUpdate } from '@/types/pocketbase'
+import { toUserThemeOption, type Theme, type User, type UserCreate, type UserUpdate } from '@/types/pocketbase'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -70,7 +70,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 更新用户主题偏好
   const updateTheme = async (theme: Theme) => {
     if (!user.value) return
-    const payload: UserUpdate = { theme }
+    const payload: UserUpdate = { theme: toUserThemeOption(theme) }
     await pb.collection(Collections.Users).update(user.value.id, payload)
   }
 

@@ -3,45 +3,54 @@ import { ref, computed } from 'vue'
 import { pb } from '@/lib/pocketbase'
 import { useAuthStore } from './auth'
 import { Collections } from '@/types/pocketbase.generated'
-import type { Todo, TodoCreate, TodoUpdate, FilterStatus, FilterPriority, Priority } from '@/types/pocketbase'
+import {
+  toTodoPriorityOption,
+  type Todo,
+  type TodoCreate,
+  type TodoUpdate,
+  type TodoUpdateInput,
+  type FilterStatus,
+  type FilterPriority,
+  type Priority,
+} from '@/types/pocketbase'
 
 export const useTodosStore = defineStore('todos', () => {
   const todos = ref<Todo[]>([])
   const loading = ref(false)
   const error = ref<string | null>(null)
-  
+
   // 筛选状态
   const filterStatus = ref<FilterStatus>('all')
   const filterPriority = ref<FilterPriority>('all')
   const searchQuery = ref('')
-  
+
   const auth = useAuthStore()
-  
+
   // 计算属性：筛选后的 todos
   const filteredTodos = computed(() => {
     let result = [...todos.value]
-    
+
     // 状态筛选
     if (filterStatus.value === 'active') {
       result = result.filter(t => !t.completed)
     } else if (filterStatus.value === 'completed') {
       result = result.filter(t => t.completed)
     }
-    
+
     // 优先级筛选
     if (filterPriority.value !== 'all') {
       result = result.filter(t => t.priority === filterPriority.value)
     }
-    
+
     // 搜索
     if (searchQuery.value.trim()) {
       const query = searchQuery.value.toLowerCase()
-      result = result.filter(t => 
+      result = result.filter(t =>
         t.title.toLowerCase().includes(query) ||
         (t.description?.toLowerCase().includes(query))
       )
     }
-    
+
     // 排序：sort_order 升序，然后 created 降序
     result.sort((a, b) => {
       if (a.sort_order !== b.sort_order) {
@@ -49,10 +58,10 @@ export const useTodosStore = defineStore('todos', () => {
       }
       return new Date(b.created).getTime() - new Date(a.created).getTime()
     })
-    
+
     return result
   })
-  
+
   // 统计
   const stats = computed(() => {
     const total = todos.value.length
@@ -62,20 +71,20 @@ export const useTodosStore = defineStore('todos', () => {
       if (!t.due_date || t.completed) return false
       return new Date(t.due_date) < new Date()
     }).length
-    
+
     return { total, completed, active, overdue }
   })
-  
+
   // 获取当前用户的 todos
   const fetchTodos = async () => {
     if (!auth.user) return
-    
+
     loading.value = true
     error.value = null
-    
+
     try {
       const result = await pb.collection(Collections.Todos).getList<Todo>(1, 500, {
-        sort: 'sort_order,-created'
+        sort: 'sort_order'
       })
       todos.value = result.items
     } catch (e) {
@@ -85,20 +94,20 @@ export const useTodosStore = defineStore('todos', () => {
       loading.value = false
     }
   }
-  
+
   // 添加 todo
   const addTodo = async (title: string, priority?: Priority, due_date?: string, description?: string, tags?: string[]) => {
     if (!auth.user) return
-    
+
     try {
       // 获取最大 sort_order
       const maxOrder = todos.value.reduce((max, t) => Math.max(max, t.sort_order || 0), 0)
-      
+
       const payload: TodoCreate = {
         title,
         description,
         completed: false,
-        priority: priority || 'medium',
+        priority: toTodoPriorityOption(priority || 'medium'),
         due_date: due_date || null,
         tags: tags || [],
         sort_order: maxOrder + 1,
@@ -113,12 +122,12 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
-  
+
   // 切换完成状态
   const toggleTodo = async (id: string) => {
     const todo = todos.value.find(t => t.id === id)
     if (!todo) return
-    
+
     try {
       const updated = await pb.collection(Collections.Todos).update<Todo>(id, {
         completed: !todo.completed
@@ -132,11 +141,15 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
-  
+
   // 更新 todo
-  const updateTodo = async (id: string, data: TodoUpdate) => {
+  const updateTodo = async (id: string, data: TodoUpdateInput) => {
     try {
-      const updated = await pb.collection(Collections.Todos).update<Todo>(id, data)
+      const payload: TodoUpdate = {
+        ...data,
+        priority: toTodoPriorityOption(data.priority)
+      }
+      const updated = await pb.collection(Collections.Todos).update<Todo>(id, payload)
       const idx = todos.value.findIndex(t => t.id === id)
       if (idx !== -1) {
         todos.value[idx] = updated
@@ -146,7 +159,7 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
-  
+
   // 删除 todo
   const deleteTodo = async (id: string) => {
     try {
@@ -157,7 +170,7 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
-  
+
   // 批量操作
   const markAllCompleted = async () => {
     const activeTodos = todos.value.filter(t => !t.completed)
@@ -171,7 +184,7 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
-  
+
   const clearCompleted = async () => {
     const completedTodos = todos.value.filter(t => t.completed)
     try {
@@ -184,24 +197,24 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
-  
+
   // 拖拽排序
   const reorderTodos = async (fromIndex: number, toIndex: number) => {
     const filtered = [...filteredTodos.value]
     const [moved] = filtered.splice(fromIndex, 1)
     filtered.splice(toIndex, 0, moved)
-    
+
     // 更新 sort_order
     const updates = filtered.map((todo, index) => ({
       id: todo.id,
       sort_order: index
     }))
-    
+
     try {
       await Promise.all(
         updates.map(u => pb.collection(Collections.Todos).update(u.id, { sort_order: u.sort_order }))
       )
-      
+
       // 更新本地状态
       updates.forEach(u => {
         const todo = todos.value.find(t => t.id === u.id)
@@ -212,14 +225,14 @@ export const useTodosStore = defineStore('todos', () => {
       throw e
     }
   }
-  
+
   // 实时订阅
   const subscribe = () => {
     pb.collection(Collections.Todos).subscribe('*', (e) => {
       // 确保是当前用户的 todo
       const record = e.record as unknown as Todo
       if (record.user !== auth.user?.id) return
-      
+
       if (e.action === 'create') {
         if (!todos.value.find(t => t.id === record.id)) {
           todos.value.unshift(record)
@@ -236,12 +249,12 @@ export const useTodosStore = defineStore('todos', () => {
       }
     })
   }
-  
+
   // 取消订阅
   const unsubscribe = () => {
     pb.collection(Collections.Todos).unsubscribe()
   }
-  
+
   return {
     todos,
     filteredTodos,

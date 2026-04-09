@@ -33,3 +33,4 @@ pocketbase/pb_data/
 certs/
 vite.config.js
 vite.config.d.ts
+pb_data/*

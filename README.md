@@ -55,6 +55,30 @@ pnpm dev
 
 5. 访问 http://localhost:5173
 
+### 本地开发模式
+
+如果你希望本地调试 PocketBase，推荐不要只依赖 Docker，而是在宿主机直接运行 PocketBase：
+
+1. 准备 PocketBase 服务端二进制
+- 放到 [pocketbase](/Users/ouyang/Project/todo-app/pocketbase) 目录下，文件名为 `pocketbase`
+- 或者通过环境变量指定路径：`PB_EXECUTABLE=/absolute/path/to/pocketbase`
+
+2. 启动本地开发
+```bash
+pnpm run dev:pb   # 只启动 PocketBase
+pnpm run dev:web  # 只启动前端
+pnpm run dev:all  # 同时启动两者，并在 PocketBase 就绪后自动执行 seed
+```
+
+说明：
+- `dev:pb` 会以 [pocketbase](/Users/ouyang/Project/todo-app/pocketbase) 作为工作目录启动 `pocketbase serve`
+- `dev:pb` 会显式传入 `--migrationsDir` 和 `--dir`，因此即使 PocketBase 是通过 Homebrew 安装的，也会正确加载项目里的 migrations 和数据目录
+- 如果 [`.env.example`](/Users/ouyang/Project/todo-app/.env.example) 对应的 `.env` 中设置了 `PB_ADMIN_EMAIL` 和 `PB_ADMIN_PASSWORD`，`dev:pb` 会先执行一次 `pocketbase superuser upsert`，自动创建或更新本地管理员
+- `pb_migrations` 仍然不是热更新项，修改后通常需要重启 PocketBase
+- 前端开发环境继续通过 [vite.config.ts](/Users/ouyang/Project/todo-app/frontend/vite.config.ts) 把 `/api` 代理到 `http://localhost:8090`
+- `dev:all` 会轮询 `PB_SEED_URL` / `PB_TYPEGEN_URL` / `http://127.0.0.1:8090`，待 PocketBase 健康检查通过后自动执行一次 `pnpm run seed:pocketbase`
+- 自动 seed 依赖 [`.env.example`](/Users/ouyang/Project/todo-app/.env.example) 对应的 `PB_SEED_*` 或 `PB_ADMIN_*` 凭据
+
 ### 生成 PocketBase TypeScript 类型
 
 项目使用 [pocketbase-typegen](https://github.com/patmood/pocketbase-typegen) 生成前端类型：

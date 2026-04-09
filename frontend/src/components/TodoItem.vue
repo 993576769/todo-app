@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import type { Todo, Priority } from '@/types/pocketbase'
+import type { Todo, Priority, TodoUpdateInput } from '@/types/pocketbase'
 
 const props = defineProps<{ todo: Todo }>()
 const emit = defineEmits<{
   toggle: [id: string]
-  update: [id: string, data: Partial<Todo>]
+  update: [id: string, data: TodoUpdateInput]
   delete: [id: string]
 }>()
 
