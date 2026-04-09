@@ -2,7 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { pb } from '@/lib/pocketbase'
 import { useThemeStore } from '@/stores/theme'
-import type { User } from '@/types/pocketbase'
+import { Collections } from '@/types/pocketbase.generated'
+import type { Theme, User, UserCreate, UserUpdate } from '@/types/pocketbase'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -25,7 +26,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 登录
   const login = async (email: string, password: string) => {
-    const auth = await pb.collection('users').authWithPassword(email, password)
+    const auth = await pb.collection(Collections.Users).authWithPassword(email, password)
     user.value = auth.record as unknown as User
     // Initialize theme from user preference
     const themeStore = useThemeStore()
@@ -35,12 +36,14 @@ export const useAuthStore = defineStore('auth', () => {
 
   // 注册
   const register = async (email: string, password: string, name?: string) => {
-    const newUser = await pb.collection('users').create({
+    const payload: UserCreate = {
       email,
       password,
       passwordConfirm: password,
       name
-    })
+    }
+
+    const newUser = await pb.collection(Collections.Users).create(payload)
     await login(email, password)
     return newUser
   }
@@ -54,7 +57,7 @@ export const useAuthStore = defineStore('auth', () => {
   // 刷新用户信息
   const refresh = async () => {
     if (!pb.authStore.isValid) return
-    const fresh = await pb.collection('users').authRefresh()
+    const fresh = await pb.collection(Collections.Users).authRefresh()
     user.value = fresh.record as unknown as User
   }
 
@@ -65,9 +68,10 @@ export const useAuthStore = defineStore('auth', () => {
   }
 
   // 更新用户主题偏好
-  const updateTheme = async (theme: string) => {
+  const updateTheme = async (theme: Theme) => {
     if (!user.value) return
-    await pb.collection('users').update(user.value.id, { theme })
+    const payload: UserUpdate = { theme }
+    await pb.collection(Collections.Users).update(user.value.id, payload)
   }
 
   return {

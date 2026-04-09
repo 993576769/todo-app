@@ -60,8 +60,8 @@ docker-compose up -d
 访问 http://todo.lazegull.top/_/
 
 1. 创建管理员账号
-2. Settings > Import collections > 选择 `pocketbase/pb_schema.json`
-3. 导入成功后，API Rules 会自动生效
+2. `pocketbase/pb_migrations` 会在服务启动时自动执行
+3. 如有新增 migration，重启 `pocketbase` 服务即可自动应用
 
 ## 自动部署
 

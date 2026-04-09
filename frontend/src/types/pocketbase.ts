@@ -1,36 +1,25 @@
-// Auto-generated types from PocketBase schema
+import type {
+  TodoCreate,
+  TodoUpdate,
+  TodosResponse,
+  TypedPocketBase,
+  UserCreate,
+  UserUpdate,
+  UsersResponse,
+} from './pocketbase.generated'
+import {
+  TodosPriorityOptions,
+  UsersThemeOptions,
+} from './pocketbase.generated'
 
-export type Priority = 'low' | 'medium' | 'high'
-export type Theme = 'light' | 'dark' | 'system'
+export type Priority = `${TodosPriorityOptions}`
+export type Theme = `${UsersThemeOptions}`
 
-export interface User {
-  id: string
-  email: string
-  name?: string
-  avatar?: string
-  theme?: Theme
-  created: string
-  updated: string
-}
+export type User = UsersResponse
+export type Todo = TodosResponse<string[], { user?: UsersResponse }>
 
-export interface Todo {
-  id: string
-  title: string
-  description?: string
-  completed: boolean
-  priority?: Priority
-  due_date?: string
-  tags?: string[]
-  sort_order: number
-  user: string
-  created: string
-  updated: string
-  
-  // 扩展字段（使用 expand 时）
-  expand?: {
-    user?: User
-  }
-}
+export type { TypedPocketBase }
+export type { TodoCreate, TodoUpdate, UserCreate, UserUpdate }
 
 // 前端使用的筛选状态
 export type FilterStatus = 'all' | 'active' | 'completed'

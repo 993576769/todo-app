@@ -40,10 +40,10 @@ cd todo-app
 docker-compose up -d pocketbase
 ```
 
-3. 配置 PocketBase
+3. 初始化 PocketBase
 - 访问 http://localhost:8090/_/
 - 创建管理员账号
-- 导入 `pocketbase/pb_schema.json`
+- `pb_migrations` 会在 PocketBase 启动时自动执行，无需再手工导入 schema
 
 4. 启动前端
 ```bash
@@ -53,6 +53,31 @@ pnpm dev
 ```
 
 5. 访问 http://localhost:5173
+
+### 生成 PocketBase TypeScript 类型
+
+项目使用 [pocketbase-typegen](https://github.com/patmood/pocketbase-typegen) 生成前端类型：
+
+```bash
+cp .env.example .env.local
+# 填入 PocketBase 超级管理员凭据或 token
+pnpm run typegen:pocketbase
+```
+
+默认会生成到 `frontend/src/types/pocketbase.generated.ts`。
+
+### 初始化示例数据
+
+项目提供了独立的 PocketBase seed 脚本，不会混进 migration：
+
+```bash
+cp .env.example .env.local
+# 优先填写独立的 PB_SEED_* 超级管理员凭据或 token
+pnpm run seed:pocketbase
+```
+
+默认会读取 `pocketbase/seeds/demo-user.mts` 和 `pocketbase/seeds/demo-todos.mts`，
+创建一个 `demo@example.com` 用户，并按需补齐几条示例 todos。
 
 ## 部署
 
@@ -72,7 +97,9 @@ todo-app/
 │   │   └── router/     # 路由
 │   └── package.json
 ├── pocketbase/         # PocketBase 配置
-│   └── pb_schema.json  # 数据模型
+│   ├── pb_migrations/  # 数据库迁移
+│   ├── scripts/        # seed / 运维脚本
+│   └── seeds/          # 示例数据
 ├── docker-compose.yml
 ├── nginx.conf
 └── .github/
