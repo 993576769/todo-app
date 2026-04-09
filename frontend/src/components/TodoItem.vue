@@ -54,18 +54,25 @@ const startEdit = () => {
   editTitle.value = props.todo.title
   editDescription.value = props.todo.description || ''
   editPriority.value = props.todo.priority || 'medium'
-  editDueDate.value = props.todo.due_date ? props.todo.due_date.split('T')[0] : ''
+  editDueDate.value = props.todo.due_date?.split('T')[0] ?? ''
   isEditing.value = true
 }
 
 const saveEdit = () => {
   if (editTitle.value.trim()) {
-    emit('update', props.todo.id, {
+    const payload: TodoUpdateInput = {
       title: editTitle.value.trim(),
-      description: editDescription.value.trim() || undefined,
-      priority: editPriority.value,
-      due_date: editDueDate.value || undefined
-    })
+      priority: editPriority.value
+    }
+
+    const description = editDescription.value.trim()
+    if (description) payload.description = description
+
+    if (editDueDate.value) {
+      payload.due_date = editDueDate.value
+    }
+
+    emit('update', props.todo.id, payload)
   }
   isEditing.value = false
 }

@@ -1,16 +1,18 @@
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
+import { ref, computed, onMounted, onUnmounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
+import { useThemeStore } from '@/stores/theme'
 import { useTodosStore } from '@/stores/todos'
 import TodoItem from '@/components/TodoItem.vue'
 import { useOffline } from '@/composables/useOffline'
-import type { Priority, Theme } from '@/types/pocketbase'
+import { filterStatusValues, type FilterStatus, type Priority, type Theme } from '@/types/pocketbase'
 
 const { isOffline } = useOffline()
 
 const router = useRouter()
 const auth = useAuthStore()
+const themeStore = useThemeStore()
 const todosStore = useTodosStore()
 
 const newTitle = ref('')
@@ -18,52 +20,32 @@ const newDescription = ref('')
 const newPriority = ref<Priority>('medium')
 const newDueDate = ref('')
 const showAddForm = ref(false)
-
-// 暗色主题
-const theme = ref<Theme>('system')
-
-// 初始化主题
-const initTheme = () => {
-  const saved = localStorage.getItem('theme') as Theme | null
-  if (saved) {
-    theme.value = saved
-    applyTheme(saved)
-  } else {
-    applyTheme('system')
-  }
-}
-
-// 应用主题
-const applyTheme = (t: Theme) => {
-  if (t === 'dark') {
-    document.documentElement.setAttribute('data-theme', 'dark')
-  } else if (t === 'light') {
-    document.documentElement.setAttribute('data-theme', 'light')
-  } else {
-    document.documentElement.removeAttribute('data-theme')
-  }
-}
+const filterStatuses = filterStatusValues satisfies readonly FilterStatus[]
 
 // 切换主题
-const toggleTheme = () => {
-  const next: Theme = theme.value === 'system' ? 'light' : theme.value === 'light' ? 'dark' : 'system'
-  theme.value = next
-  localStorage.setItem('theme', next)
-  applyTheme(next)
+const toggleTheme = async () => {
+  const currentTheme = themeStore.theme
+  const next: Theme = currentTheme === 'system' ? 'light' : currentTheme === 'light' ? 'dark' : 'system'
+  themeStore.setTheme(next)
+
+  if (auth.isLoggedIn) {
+    await auth.updateTheme(next)
+  }
 }
 
-const themeIcon = () => {
+const theme = computed(() => themeStore.theme)
+
+const themeIcon = computed(() => {
   if (theme.value === 'dark') return '🌙'
   if (theme.value === 'light') return '☀️'
   return '💻'
-}
+})
 
 // 版本标识
 const BUILD_VERSION = '2026.03.27-v2'
 
 // 初始化
 onMounted(async () => {
-  initTheme()
   await todosStore.fetchTodos()
   todosStore.subscribe()
 })
@@ -133,7 +115,7 @@ const handleDragEnd = () => {
         <h1 class="logo">📝 Todo</h1>
         <div class="header-actions">
           <button class="btn btn-ghost theme-toggle" @click="toggleTheme" :title="`主题: ${theme}`">
-            {{ themeIcon() }}
+            {{ themeIcon }}
           </button>
           <div class="user-info">
             <span class="user-name">{{ auth.user?.name || auth.user?.email }}</span>
@@ -167,11 +149,11 @@ const handleDragEnd = () => {
         <!-- 状态筛选 -->
         <div class="filter-group">
           <button 
-            v-for="status in ['all', 'active', 'completed']" 
+            v-for="status in filterStatuses" 
             :key="status"
             class="btn btn-sm"
             :class="todosStore.filterStatus === status ? 'btn-primary' : 'btn-ghost'"
-            @click="todosStore.filterStatus = status as any"
+            @click="todosStore.filterStatus = status"
           >
             {{ status === 'all' ? '全部' : status === 'active' ? '进行中' : '已完成' }}
           </button>

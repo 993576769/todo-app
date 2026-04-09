@@ -1,9 +1,9 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
-import { pb } from '@/lib/pocketbase'
+import { todosCollection } from '@/lib/pocketbase'
 import { useAuthStore } from './auth'
-import { Collections } from '@/types/pocketbase.generated'
 import {
+  isTodo,
   toTodoPriorityOption,
   type Todo,
   type TodoCreate,
@@ -99,7 +99,7 @@ export const useTodosStore = defineStore('todos', () => {
     error.value = null
 
     try {
-      const result = await pb.collection(Collections.Todos).getList<Todo>(1, 500, {
+      const result = await todosCollection().getList(1, 500, {
         sort: 'sort_order'
       })
       todos.value = result.items
@@ -121,16 +121,17 @@ export const useTodosStore = defineStore('todos', () => {
 
       const payload: TodoCreate = {
         title,
-        description,
         completed: false,
-        priority: toTodoPriorityOption(priority || 'medium'),
         due_date: due_date || null,
         tags: tags || [],
         sort_order: maxOrder + 1,
         user: auth.user.id
       }
+      const normalizedDescription = description?.trim()
+      if (normalizedDescription) payload.description = normalizedDescription
+      payload.priority = toTodoPriorityOption(priority || 'medium')
 
-      const todo = await pb.collection(Collections.Todos).create<Todo>(payload)
+      const todo = await todosCollection().create(payload)
       upsertTodo(todo)
       return todo
     } catch (e) {
@@ -145,7 +146,7 @@ export const useTodosStore = defineStore('todos', () => {
     if (!todo) return
 
     try {
-      const updated = await pb.collection(Collections.Todos).update<Todo>(id, {
+      const updated = await todosCollection().update(id, {
         completed: !todo.completed
       })
       upsertTodo(updated)
@@ -158,11 +159,12 @@ export const useTodosStore = defineStore('todos', () => {
   // 更新 todo
   const updateTodo = async (id: string, data: TodoUpdateInput) => {
     try {
-      const payload: TodoUpdate = {
-        ...data,
-        priority: toTodoPriorityOption(data.priority)
+      const { priority, ...rest } = data
+      const payload: TodoUpdate = { ...rest }
+      if (priority) {
+        payload.priority = toTodoPriorityOption(priority)
       }
-      const updated = await pb.collection(Collections.Todos).update<Todo>(id, payload)
+      const updated = await todosCollection().update(id, payload)
       upsertTodo(updated)
     } catch (e) {
       error.value = '更新任务失败'
@@ -173,7 +175,7 @@ export const useTodosStore = defineStore('todos', () => {
   // 删除 todo
   const deleteTodo = async (id: string) => {
     try {
-      await pb.collection(Collections.Todos).delete(id)
+      await todosCollection().delete(id)
       todos.value = todos.value.filter(t => t.id !== id)
     } catch (e) {
       error.value = '删除任务失败'
@@ -186,7 +188,7 @@ export const useTodosStore = defineStore('todos', () => {
     const activeTodos = todos.value.filter(t => !t.completed)
     try {
       await Promise.all(
-        activeTodos.map(t => pb.collection(Collections.Todos).update(t.id, { completed: true }))
+        activeTodos.map(t => todosCollection().update(t.id, { completed: true }))
       )
       activeTodos.forEach(t => t.completed = true)
     } catch (e) {
@@ -199,7 +201,7 @@ export const useTodosStore = defineStore('todos', () => {
     const completedTodos = todos.value.filter(t => t.completed)
     try {
       await Promise.all(
-        completedTodos.map(t => pb.collection(Collections.Todos).delete(t.id))
+        completedTodos.map(t => todosCollection().delete(t.id))
       )
       todos.value = todos.value.filter(t => !t.completed)
     } catch (e) {
@@ -212,6 +214,7 @@ export const useTodosStore = defineStore('todos', () => {
   const reorderTodos = async (fromIndex: number, toIndex: number) => {
     const filtered = [...filteredTodos.value]
     const [moved] = filtered.splice(fromIndex, 1)
+    if (!moved) return
     filtered.splice(toIndex, 0, moved)
 
     // 更新 sort_order
@@ -222,7 +225,7 @@ export const useTodosStore = defineStore('todos', () => {
 
     try {
       await Promise.all(
-        updates.map(u => pb.collection(Collections.Todos).update(u.id, { sort_order: u.sort_order }))
+        updates.map(u => todosCollection().update(u.id, { sort_order: u.sort_order }))
       )
 
       // 更新本地状态
@@ -238,26 +241,25 @@ export const useTodosStore = defineStore('todos', () => {
 
   // 实时订阅
   const subscribe = () => {
-    pb.collection(Collections.Todos).subscribe('*', (e) => {
+    todosCollection().subscribe<Todo>('*', (e) => {
       // 确保是当前用户的 todo
-      const record = e.record as unknown as Todo
-      if (record.user !== auth.user?.id) return
+      if (!isTodo(e.record) || e.record.user !== auth.user?.id) return
 
       if (e.action === 'create') {
-        upsertTodo(record)
+        upsertTodo(e.record)
       }
       if (e.action === 'update') {
-        upsertTodo(record)
+        upsertTodo(e.record)
       }
       if (e.action === 'delete') {
-        todos.value = todos.value.filter(t => t.id !== record.id)
+        todos.value = todos.value.filter(t => t.id !== e.record.id)
       }
     })
   }
 
   // 取消订阅
   const unsubscribe = () => {
-    pb.collection(Collections.Todos).unsubscribe()
+    todosCollection().unsubscribe()
   }
 
   return {

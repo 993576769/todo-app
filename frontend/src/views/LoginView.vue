@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useRouter, useRoute } from 'vue-router'
+import { useRouter, useRoute, type LocationQueryValue } from 'vue-router'
 import { useAuthStore } from '@/stores/auth'
 import { CheckSquare, Mail, Lock, User, Loader2 } from 'lucide-vue-next'
 import ThemeToggle from '@/components/ThemeToggle.vue'
@@ -15,6 +15,23 @@ const password = ref('')
 const name = ref('')
 const error = ref('')
 const loading = ref(false)
+
+const getRedirectTarget = (redirect: LocationQueryValue | LocationQueryValue[] | undefined) => {
+  if (typeof redirect === 'string' && redirect.length > 0) return redirect
+  if (Array.isArray(redirect)) {
+    const [firstRedirect] = redirect
+    return typeof firstRedirect === 'string' && firstRedirect.length > 0 ? firstRedirect : undefined
+  }
+  return undefined
+}
+
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (error instanceof Error && error.message) return error.message
+  if (typeof error === 'object' && error !== null && 'message' in error && typeof error.message === 'string') {
+    return error.message
+  }
+  return fallback
+}
 
 // 切换登录/注册
 const toggleMode = () => {
@@ -41,10 +58,10 @@ const handleSubmit = async () => {
     }
 
     // 跳转到原页面或首页
-    const redirect = route.query.redirect as string
+    const redirect = getRedirectTarget(route.query.redirect)
     router.push(redirect || { name: 'home' })
-  } catch (e: any) {
-    error.value = e?.message || (isLogin.value ? '登录失败' : '注册失败')
+  } catch (e: unknown) {
+    error.value = getErrorMessage(e, isLogin.value ? '登录失败' : '注册失败')
   } finally {
     loading.value = false
   }

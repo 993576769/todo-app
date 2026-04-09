@@ -5,7 +5,7 @@ import { Calendar, X } from 'lucide-vue-next'
 const dueDate = defineModel<string | null>({ default: null })
 
 const showPicker = ref(false)
-const inputRef = ref<HTMLInputElement>()
+const inputRef = ref<HTMLInputElement | null>(null)
 
 const formattedDate = computed(() => {
   if (!dueDate.value) return null
@@ -24,7 +24,8 @@ const clearDate = () => {
 }
 
 const handleDateChange = (e: Event) => {
-  const target = e.target as HTMLInputElement
+  const target = e.target
+  if (!(target instanceof HTMLInputElement)) return
   dueDate.value = target.value || null
   showPicker.value = false
 }

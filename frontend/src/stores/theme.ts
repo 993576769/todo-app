@@ -1,11 +1,18 @@
 import { defineStore } from 'pinia'
 import { ref, watch } from 'vue'
-import type { Theme } from '@/types/pocketbase'
+import { isTheme, type Theme } from '@/types/pocketbase'
 
 export { type Theme }
 
+const getStoredTheme = (): Theme => {
+  if (typeof window === 'undefined') return 'system'
+
+  const storedTheme = window.localStorage.getItem('theme')
+  return isTheme(storedTheme) ? storedTheme : 'system'
+}
+
 export const useThemeStore = defineStore('theme', () => {
-  const theme = ref<Theme>((localStorage.getItem('theme') as Theme) || 'system')
+  const theme = ref<Theme>(getStoredTheme())
 
   // Get the actual theme based on system preference
   const getSystemTheme = (): 'light' | 'dark' => {
@@ -27,7 +34,7 @@ export const useThemeStore = defineStore('theme', () => {
 
   // Watch for changes
   watch(theme, (newTheme) => {
-    localStorage.setItem('theme', newTheme)
+    window.localStorage.setItem('theme', newTheme)
     applyTheme(newTheme)
   })
 
