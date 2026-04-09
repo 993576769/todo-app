@@ -26,6 +26,22 @@ export const useTodosStore = defineStore('todos', () => {
 
   const auth = useAuthStore()
 
+  const upsertTodo = (todo: Todo, position: 'start' | 'end' = 'start') => {
+    const existingIndex = todos.value.findIndex(item => item.id === todo.id)
+
+    if (existingIndex !== -1) {
+      todos.value[existingIndex] = todo
+      return
+    }
+
+    if (position === 'start') {
+      todos.value.unshift(todo)
+      return
+    }
+
+    todos.value.push(todo)
+  }
+
   // 计算属性：筛选后的 todos
   const filteredTodos = computed(() => {
     let result = [...todos.value]
@@ -115,7 +131,7 @@ export const useTodosStore = defineStore('todos', () => {
       }
 
       const todo = await pb.collection(Collections.Todos).create<Todo>(payload)
-      todos.value.unshift(todo)
+      upsertTodo(todo)
       return todo
     } catch (e) {
       error.value = '添加任务失败'
@@ -132,10 +148,7 @@ export const useTodosStore = defineStore('todos', () => {
       const updated = await pb.collection(Collections.Todos).update<Todo>(id, {
         completed: !todo.completed
       })
-      const idx = todos.value.findIndex(t => t.id === id)
-      if (idx !== -1) {
-        todos.value[idx] = updated
-      }
+      upsertTodo(updated)
     } catch (e) {
       error.value = '更新状态失败'
       throw e
@@ -150,10 +163,7 @@ export const useTodosStore = defineStore('todos', () => {
         priority: toTodoPriorityOption(data.priority)
       }
       const updated = await pb.collection(Collections.Todos).update<Todo>(id, payload)
-      const idx = todos.value.findIndex(t => t.id === id)
-      if (idx !== -1) {
-        todos.value[idx] = updated
-      }
+      upsertTodo(updated)
     } catch (e) {
       error.value = '更新任务失败'
       throw e
@@ -234,15 +244,10 @@ export const useTodosStore = defineStore('todos', () => {
       if (record.user !== auth.user?.id) return
 
       if (e.action === 'create') {
-        if (!todos.value.find(t => t.id === record.id)) {
-          todos.value.unshift(record)
-        }
+        upsertTodo(record)
       }
       if (e.action === 'update') {
-        const idx = todos.value.findIndex(t => t.id === record.id)
-        if (idx !== -1) {
-          todos.value[idx] = record
-        }
+        upsertTodo(record)
       }
       if (e.action === 'delete') {
         todos.value = todos.value.filter(t => t.id !== record.id)
