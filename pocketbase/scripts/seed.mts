@@ -29,7 +29,8 @@ Environment variables:
 
 Notes:
   - Seed data comes from pocketbase/seeds/demo-user.mts and demo-todos.mts
-  - PB_TYPEGEN_* is accepted only as a backward-compatible fallback
+  - This script reads .env first and .env.local as a compatibility fallback
+  - Credentials fall back in this order: PB_SEED_* -> PB_TYPEGEN_* -> PB_ADMIN_*
 `)
   process.exit(0)
 }
@@ -71,27 +72,39 @@ const loadEnvFile = (filename: string) => {
 loadEnvFile('.env')
 loadEnvFile('.env.local')
 
-const preferSeedEnv = (key: string, fallbackKey: string) => process.env[key] || process.env[fallbackKey]
+const firstEnv = (...keys: string[]) => {
+  for (const key of keys) {
+    const value = process.env[key]
+    if (value) {
+      return value
+    }
+  }
 
-const pbUrl = preferSeedEnv('PB_SEED_URL', 'PB_TYPEGEN_URL') || 'http://127.0.0.1:8090'
-const superuserEmail = preferSeedEnv('PB_SEED_EMAIL', 'PB_TYPEGEN_EMAIL')
-const superuserPassword = preferSeedEnv('PB_SEED_PASSWORD', 'PB_TYPEGEN_PASSWORD')
-const superuserToken = preferSeedEnv('PB_SEED_TOKEN', 'PB_TYPEGEN_TOKEN')
+  return undefined
+}
+
+const pbUrl = firstEnv('PB_SEED_URL', 'PB_TYPEGEN_URL') || 'http://127.0.0.1:8090'
+const superuserEmail = firstEnv('PB_SEED_EMAIL', 'PB_TYPEGEN_EMAIL', 'PB_ADMIN_EMAIL')
+const superuserPassword = firstEnv('PB_SEED_PASSWORD', 'PB_TYPEGEN_PASSWORD', 'PB_ADMIN_PASSWORD')
+const superuserToken = firstEnv('PB_SEED_TOKEN', 'PB_TYPEGEN_TOKEN')
 
 const usingCompatFallback = (
   (!process.env.PB_SEED_URL && process.env.PB_TYPEGEN_URL) ||
+  (!process.env.PB_SEED_URL && process.env.PB_TYPEGEN_URL) ||
   (!process.env.PB_SEED_EMAIL && process.env.PB_TYPEGEN_EMAIL) ||
+  (!process.env.PB_SEED_EMAIL && !process.env.PB_TYPEGEN_EMAIL && process.env.PB_ADMIN_EMAIL) ||
   (!process.env.PB_SEED_PASSWORD && process.env.PB_TYPEGEN_PASSWORD) ||
+  (!process.env.PB_SEED_PASSWORD && !process.env.PB_TYPEGEN_PASSWORD && process.env.PB_ADMIN_PASSWORD) ||
   (!process.env.PB_SEED_TOKEN && process.env.PB_TYPEGEN_TOKEN)
 )
 
 if (usingCompatFallback) {
-  console.warn('Using PB_TYPEGEN_* as a fallback for seed. Prefer defining dedicated PB_SEED_* variables.')
+  console.warn('Using fallback credentials for seed. Preferred order is PB_SEED_* -> PB_TYPEGEN_* -> PB_ADMIN_*.')
 }
 
 if (!superuserToken && (!superuserEmail || !superuserPassword)) {
   console.error('Missing seed credentials.')
-  console.error('Set PB_SEED_TOKEN or PB_SEED_EMAIL/PB_SEED_PASSWORD in .env.local.')
+  console.error('Set PB_SEED_TOKEN or PB_SEED_EMAIL/PB_SEED_PASSWORD in .env, or provide PB_ADMIN_EMAIL/PB_ADMIN_PASSWORD.')
   process.exit(1)
 }
 

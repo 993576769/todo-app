@@ -44,6 +44,7 @@ docker-compose up -d pocketbase
 - 访问 http://localhost:8090/_/
 - 创建管理员账号
 - `pb_migrations` 会在 PocketBase 启动时自动执行，无需再手工导入 schema
+- 如果希望容器启动时自动创建/更新管理员，可以在环境里设置 `PB_ADMIN_EMAIL` 和 `PB_ADMIN_PASSWORD`
 
 4. 启动前端
 ```bash
@@ -59,8 +60,8 @@ pnpm dev
 项目使用 [pocketbase-typegen](https://github.com/patmood/pocketbase-typegen) 生成前端类型：
 
 ```bash
-cp .env.example .env.local
-# 填入 PocketBase 超级管理员凭据或 token
+cp .env.example .env
+# 填入 PB_TYPEGEN_*，或直接复用 PB_ADMIN_EMAIL / PB_ADMIN_PASSWORD
 pnpm run typegen:pocketbase
 ```
 
@@ -71,8 +72,8 @@ pnpm run typegen:pocketbase
 项目提供了独立的 PocketBase seed 脚本，不会混进 migration：
 
 ```bash
-cp .env.example .env.local
-# 优先填写独立的 PB_SEED_* 超级管理员凭据或 token
+cp .env.example .env
+# 优先填写独立的 PB_SEED_*，否则会回退到 PB_TYPEGEN_*，最后回退到 PB_ADMIN_*
 pnpm run seed:pocketbase
 ```
 

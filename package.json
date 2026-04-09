@@ -11,7 +11,7 @@
     "build": "pnpm --dir frontend build",
     "preview": "pnpm --dir frontend preview",
     "seed:pocketbase": "pnpm exec node --import tsx pocketbase/scripts/seed.mts",
-    "typegen:pocketbase": "pocketbase-typegen --env . --out frontend/src/types/pocketbase.generated.ts",
+    "typegen:pocketbase": "sh -c 'PB_TYPEGEN_URL=${PB_TYPEGEN_URL:-${PB_SEED_URL:-http://127.0.0.1:8090}} PB_TYPEGEN_EMAIL=${PB_TYPEGEN_EMAIL:-$PB_ADMIN_EMAIL} PB_TYPEGEN_PASSWORD=${PB_TYPEGEN_PASSWORD:-$PB_ADMIN_PASSWORD} PB_TYPEGEN_TOKEN=${PB_TYPEGEN_TOKEN:-} pocketbase-typegen --env . --out frontend/src/types/pocketbase.generated.ts'",
     "typecheck:pocketbase": "pnpm --dir frontend exec tsc -p ../pocketbase/tsconfig.json --noEmit && pnpm --dir frontend exec tsc -p ../pocketbase/tsconfig.scripts.json --noEmit"
   },
   "devDependencies": {

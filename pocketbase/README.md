@@ -23,7 +23,8 @@
 - seed 脚本使用 TypeScript，配置在 [tsconfig.scripts.json](/Users/ouyang/Project/todo-app/pocketbase/tsconfig.scripts.json)，运行入口是 [seed.mts](/Users/ouyang/Project/todo-app/pocketbase/scripts/seed.mts)。
 - 执行 `pnpm run typecheck:pocketbase` 可以同时检查 PocketBase migration 和 seed 脚本。
 - 前端记录类型使用 [pocketbase-typegen](https://github.com/patmood/pocketbase-typegen) 生成，输出文件是 [pocketbase.generated.ts](/Users/ouyang/Project/todo-app/frontend/src/types/pocketbase.generated.ts)。
-- 运行 `pnpm run typegen:pocketbase` 前，先把根目录的 [`.env.example`](/Users/ouyang/Project/todo-app/.env.example) 复制为 `.env.local` 并填入 `PB_TYPEGEN_*` 变量。
+- 运行 `pnpm run typegen:pocketbase` 或 `pnpm run seed:pocketbase` 前，先把根目录的 [`.env.example`](/Users/ouyang/Project/todo-app/.env.example) 复制为 `.env` 并填入对应变量。
+- `seed` 的凭据回退顺序是 `PB_SEED_* -> PB_TYPEGEN_* -> PB_ADMIN_*`；`typegen` 在未设置专用账号时会回退到 `PB_ADMIN_EMAIL` / `PB_ADMIN_PASSWORD`。
 
 ## 为什么不把示例数据放进 migration
 
